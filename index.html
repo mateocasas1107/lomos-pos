@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lomos & Lomos Express | POS Profesional</title>
+    <!-- Importación de la hoja de estilos base compartida -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Librería para exportar Facturas Electrónicas a PDF profesional -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="dark-theme">
+
+    <!-- Barra de Navegación Lateral -->
+    <nav class="sidebar">
+        <div class="logo">LOMOS & LOMOS</div>
+        
+        <ul id="main-menu">
+            <!-- Cada item (li) se sincroniza con showModule de main.js -->
+            <li id="menu-ventas" onclick="showModule('ventas')" class="active">
+                <span>🥩</span> Panel de Ventas
+            </li>
+            <li id="menu-inventario" onclick="showModule('inventario')">
+                <span>📦</span> Inventario Central
+            </li>
+            <!-- Sección para la administración de clientes y frecuencia de consumo -->
+            <li id="menu-clientes" onclick="showModule('clientes')">
+                <span>👥</span> Base de Clientes
+            </li>
+            <!-- NUEVA SECCIÓN DE DOMICILIOS -->
+            <li id="menu-domicilios" onclick="showModule('domicilios')">
+                <span>🛵</span> Domicilios y Pedidos
+            </li>
+            <!-- Sección para el registro de egresos, arriendos, servicios y sueldos -->
+            <li id="menu-gastos" onclick="showModule('gastos')">
+                <span>💸</span> Gastos Operativos
+            </li>
+            <!-- Sección consolidada de finanzas, balances y cuentas por cobrar (fiados) -->
+            <li id="menu-finanzas" onclick="showModule('finanzas')">
+                <span>📊</span> Finanzas y Caja
+            </li>
+        </ul>
+
+        <!-- Información de pie de página con versión del sistema -->
+        <div style="margin-top: auto; padding: 20px; font-size: 0.7rem; color: #444; border-top: 1px solid #222;">
+            <p>V 4.5 - Premium POS</p>
+            <p>© 2026 Lomos & Lomos Express</p>
+        </div>
+    </nav>
+
+    <!-- Contenedor Dinámico -->
+    <!-- Aquí es donde el router de JavaScript inyectará el HTML de cada módulo cargado -->
+    <main id="app-container">
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: #555; gap: 15px;">
+            <div style="font-size: 2.5rem; animation: spin 2s linear infinite;">🔄</div>
+            <p style="font-family: monospace; font-size: 0.9rem; letter-spacing: 1px;">SISTEMA CARGANDO...</p>
+        </div>
+    </main>
+
+    <!-- Cargador del Script Principal -->
+    <!-- Se declara como "module" para dar soporte a los imports y exports de los archivos JS de cada módulo -->
+    <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
