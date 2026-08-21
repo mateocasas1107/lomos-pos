@@ -1,6 +1,7 @@
 /**
  * Módulo de Base de Datos de Clientes - Lomos & Lomos Express
  * Permite registrar, editar y analizar clientes naturales o carnicerías aliadas.
+ * Incluye categorización por localidad para optimización de rutas de domicilio.
  */
 
 export function renderClientes(container, state) {
@@ -79,6 +80,20 @@ export function renderClientes(container, state) {
             display: flex; justify-content: center; align-items: center; z-index: 9999;
         `;
 
+        // Lista de localidades de Bogotá para estandarizar las rutas
+        const localidades = [
+            "Usaquén", "Chapinero", "Santa Fe", "San Cristóbal", "Usme", 
+            "Tunjuelito", "Bosa", "Kennedy", "Fontibón", "Engativá", 
+            "Suba", "Barrios Unidos", "Teusaquillo", "Los Mártires", 
+            "Antonio Nariño", "Puente Aranda", "La Candelaria", 
+            "Rafael Uribe Uribe", "Ciudad Bolívar", "Sumapaz",
+            "Soacha", "Chía / Sabana", "Otra / Fuera de la ciudad"
+        ];
+
+        const opcionesLocalidad = localidades.map(loc => 
+            `<option value="${loc}" ${esEdicion && clienteAEditar.localidad === loc ? 'selected' : ''}>📍 ${loc}</option>`
+        ).join('');
+
         modalOverlay.innerHTML = `
             <div style="background: #141414; border: 1px solid #2a2a2a; border-radius: 16px; width: 100%; max-width: 450px; padding: 30px; color: #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
                 <h2 style="margin-top:0; margin-bottom: 20px; font-size:1.3rem; border-bottom:1px solid #222; padding-bottom:10px; color: var(--accent, #e74c3c);">
@@ -91,27 +106,37 @@ export function renderClientes(container, state) {
                         <input type="text" id="cli-nombre" value="${esEdicion ? clienteAEditar.nombre : ''}" placeholder="Ej: Asadero El Vecino o Juan Pérez" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none;">
                     </div>
 
-                    <div>
-                        <label style="font-size:0.75rem; color:#888; font-weight:bold; text-transform:uppercase;">Cédula o NIT (Opcional)</label>
-                        <input type="text" id="cli-cedula" value="${esEdicion ? clienteAEditar.cedula : ''}" placeholder="Ej: 1094.234.567" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none;">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size:0.75rem; color:#888; font-weight:bold; text-transform:uppercase;">Cédula o NIT</label>
+                            <input type="text" id="cli-cedula" value="${esEdicion ? clienteAEditar.cedula : ''}" placeholder="Opcional" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size:0.75rem; color:#888; font-weight:bold; text-transform:uppercase;">Teléfono</label>
+                            <input type="text" id="cli-telefono" value="${esEdicion ? (clienteAEditar.telefono || '') : ''}" placeholder="Opcional" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none;">
+                        </div>
                     </div>
 
-                    <div>
-                        <label style="font-size:0.75rem; color:#888; font-weight:bold; text-transform:uppercase;">Teléfono de Contacto (Opcional)</label>
-                        <input type="text" id="cli-telefono" value="${esEdicion ? (clienteAEditar.telefono || '') : ''}" placeholder="Ej: 312 456 7890" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none;">
-                    </div>
-
-                    <div>
-                        <label style="font-size:0.75rem; color:#888; font-weight:bold; text-transform:uppercase;">Tipo de Cliente</label>
-                        <select id="cli-tipo" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none; cursor:pointer;">
-                            <option value="natural" ${esEdicion && clienteAEditar.tipo === 'natural' ? 'selected' : ''}>👤 Cliente Natural (Particular)</option>
-                            <option value="carniceria" ${esEdicion && clienteAEditar.tipo === 'carniceria' ? 'selected' : ''}>🥩 Carnicería / Negocio Aliado</option>
-                        </select>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size:0.75rem; color:#888; font-weight:bold; text-transform:uppercase;">Tipo de Cliente</label>
+                            <select id="cli-tipo" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none; cursor:pointer;">
+                                <option value="natural" ${esEdicion && clienteAEditar.tipo === 'natural' ? 'selected' : ''}>👤 Natural</option>
+                                <option value="carniceria" ${esEdicion && clienteAEditar.tipo === 'carniceria' ? 'selected' : ''}>🥩 Negocio/Aliado</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size:0.75rem; color:#3498db; font-weight:bold; text-transform:uppercase;">Localidad / Zona</label>
+                            <select id="cli-localidad" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #3498db; color:white; border-radius:8px; outline:none; cursor:pointer;">
+                                <option value="" disabled ${!esEdicion || !clienteAEditar.localidad ? 'selected' : ''}>-- Elija una --</option>
+                                ${opcionesLocalidad}
+                            </select>
+                        </div>
                     </div>
 
                     <div id="wrapper-ubicacion">
                         <label style="font-size:0.75rem; color:#888; font-weight:bold; text-transform:uppercase;">Ubicación / Dirección de Entrega</label>
-                        <input type="text" id="cli-ubicacion" value="${esEdicion ? (clienteAEditar.ubicacion || '') : ''}" placeholder="Ej: Calle 15 #23-44, Frente al Parque Principal" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none;">
+                        <input type="text" id="cli-ubicacion" value="${esEdicion ? (clienteAEditar.ubicacion || '') : ''}" placeholder="Ej: Calle 15 #23-44" style="width:100%; padding:11px; margin-top:5px; background:#000; border:1px solid #333; color:white; border-radius:8px; outline:none;">
                     </div>
                 </div>
 
@@ -129,9 +154,8 @@ export function renderClientes(container, state) {
         const wrapperUbi = document.getElementById('wrapper-ubicacion');
         
         const ajustarVisibilidadUbicacion = () => {
-            // Se sugiere siempre, pero para Carnicerías se hace énfasis
             if (selectTipo.value === 'carniceria') {
-                wrapperUbi.querySelector('label').innerText = "📍 Ubicación / Dirección Comercial (Obligatorio)";
+                wrapperUbi.querySelector('label').innerText = "📍 Dirección Comercial (Obligatorio)";
             } else {
                 wrapperUbi.querySelector('label').innerText = "🏠 Dirección de Residencia (Opcional)";
             }
@@ -146,6 +170,7 @@ export function renderClientes(container, state) {
             const cedula = document.getElementById('cli-cedula').value.trim();
             const telefono = document.getElementById('cli-telefono').value.trim();
             const tipo = selectTipo.value;
+            const localidad = document.getElementById('cli-localidad').value;
             const ubicacion = document.getElementById('cli-ubicacion').value.trim();
 
             if (!nombre) {
@@ -158,18 +183,22 @@ export function renderClientes(container, state) {
                 return;
             }
 
+            if (!localidad) {
+                mostrarAlertaLocal("Por favor, seleccione la localidad para facilitar la creación de rutas de domicilio.");
+                return;
+            }
+
             if (esEdicion) {
-                // SOLUCIÓN: Buscamos el cliente real en la base de datos usando su ID
                 const clienteReal = state.clientes.find(c => c.id === clienteAEditar.id);
                 if (clienteReal) {
                     clienteReal.nombre = nombre;
                     clienteReal.cedula = cedula;
                     clienteReal.telefono = telefono;
                     clienteReal.tipo = tipo;
+                    clienteReal.localidad = localidad;
                     clienteReal.ubicacion = ubicacion;
                 }
             } else {
-                // Solo validar duplicados si se ingresó una cédula/NIT
                 if (cedula) {
                     const duplicado = state.clientes.some(c => c.cedula === cedula);
                     if (duplicado) {
@@ -181,9 +210,10 @@ export function renderClientes(container, state) {
                 state.clientes.push({
                     id: Date.now(),
                     nombre,
-                    cedula: cedula || "", // Se guarda vacío si no se suministra
+                    cedula: cedula || "",
                     telefono,
                     tipo,
+                    localidad,
                     ubicacion,
                     fechaRegistro: new Date().toLocaleDateString()
                 });
@@ -241,7 +271,6 @@ export function renderClientes(container, state) {
                     <button id="close-historial-btn" style="background:none; border:none; color:#888; font-size:1.5rem; cursor:pointer;">✕</button>
                 </div>
 
-                <!-- Resumen de Métricas del Cliente -->
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom:20px; background:#0d0d0d; padding:15px; border-radius:10px; border:1px solid #222; text-align:center;">
                     <div>
                         <span style="color:#666; font-size:0.75rem; text-transform:uppercase; font-weight:bold;">Visitas / Compras</span>
@@ -257,7 +286,6 @@ export function renderClientes(container, state) {
                     </div>
                 </div>
 
-                <!-- Listado de Facturas -->
                 <div style="flex-grow:1; overflow-y:auto; margin-bottom:15px; padding-right:5px;">
                     ${stats.listado.length > 0 ? stats.listado.map(compra => {
                         const itemsTxt = compra.items.map(i => `${i.nombre} (${i.cantidadDetalle})`).join(', ');
@@ -321,7 +349,6 @@ export function renderClientes(container, state) {
                 </button>
             </div>
 
-            <!-- Indicadores Rápidos -->
             <div class="dashboard-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
                 <div style="background: #1a1a1a; padding: 20px; border-radius: 12px; border: 1px solid #333; text-align: center;">
                     <span style="color: #888; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Clientes Registrados</span>
@@ -340,7 +367,6 @@ export function renderClientes(container, state) {
                 </div>
             </div>
 
-            <!-- Panel de Búsqueda y Pestañas -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
                 <div class="search-box" style="flex-grow: 1; max-width: 400px;">
                     <input type="text" id="cli-search-input" 
@@ -374,7 +400,7 @@ export function renderClientes(container, state) {
                             <th style="padding: 15px; color: #888; text-align: left; font-size:0.8rem;">Nombre / Razón Social</th>
                             <th style="padding: 15px; color: #888; text-align: left; font-size:0.8rem;">Cédula / NIT</th>
                             <th style="padding: 15px; color: #888; text-align: left; font-size:0.8rem;">Contacto</th>
-                            <th style="padding: 15px; color: #888; text-align: left; font-size:0.8rem;">Ubicación / Dirección</th>
+                            <th style="padding: 15px; color: #888; text-align: left; font-size:0.8rem;">Localidad y Dirección</th>
                             <th style="padding: 15px; color: #888; text-align: center; font-size:0.8rem;">Compras</th>
                             <th style="padding: 15px; color: #888; text-align: center; font-size:0.8rem;">Acciones</th>
                         </tr>
@@ -395,7 +421,8 @@ export function renderClientes(container, state) {
                                     <td style="padding: 15px; color:#fff; font-family: monospace;">${c.cedula || '<span style="color:#444;">Sin Cédula/NIT</span>'}</td>
                                     <td style="padding: 15px; color:#ccc;">${c.telefono || '<span style="color:#444;">Sin teléfono</span>'}</td>
                                     <td style="padding: 15px; color:#aaa; font-size:0.85rem; max-width:200px; word-wrap:break-word;">
-                                        ${c.ubicacion || '<span style="color:#444;">Sin dirección</span>'}
+                                        <div style="color: #3498db; font-weight: bold; margin-bottom: 4px;">📍 ${c.localidad || 'Sin Localidad'}</div>
+                                        ${c.ubicacion || '<span style="color:#444;">Sin dirección específica</span>'}
                                     </td>
                                     <td style="padding: 15px; text-align: center;">
                                         <button onclick="window.verHistorialComprasCliente('${c.nombre}')" 
@@ -438,35 +465,15 @@ export function renderClientes(container, state) {
             searchInput.setSelectionRange(state.busquedaCliente.length, state.busquedaCliente.length);
         }
     }
-    // ... existing code ...
-    // Restaurar foco del buscador
-    if (state.busquedaCliente !== "") {
-        const searchInput = document.getElementById('cli-search-input');
-        if (searchInput) {
-            searchInput.focus();
-            searchInput.setSelectionRange(state.busquedaCliente.length, state.busquedaCliente.length);
-        }
-    }
 
-    // --- NUEVA FUNCIÓN: BOTÓN FLOTANTE PARA EXPORTAR A EXCEL (XLS ESTRUCTURADO) ---
+    // --- BOTÓN FLOTANTE PARA EXPORTAR A EXCEL (XLS ESTRUCTURADO) ---
     const btnExportar = document.createElement('button');
-    btnExportar.id = 'btn-export-csv-clientes'; // Mantenemos el ID para no duplicar
+    btnExportar.id = 'btn-export-csv-clientes';
     btnExportar.innerHTML = '📥 Exportar a Excel';
     btnExportar.style = `
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        background: #27ae60;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 50px;
-        font-size: 0.95rem;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        z-index: 1000;
-        transition: all 0.2s ease;
+        position: fixed; bottom: 30px; right: 30px; background: #27ae60; color: white;
+        border: none; padding: 12px 24px; border-radius: 50px; font-size: 0.95rem; font-weight: bold;
+        cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 1000; transition: all 0.2s ease;
     `;
     
     btnExportar.onmouseover = () => btnExportar.style.transform = 'scale(1.05)';
@@ -482,7 +489,6 @@ export function renderClientes(container, state) {
             return;
         }
 
-        // Construir una tabla HTML estructurada para Excel
         let tablaHTML = `
             <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
             <head><meta charset="UTF-8"></head>
@@ -493,6 +499,7 @@ export function renderClientes(container, state) {
                             <th style="background-color: #4CAF50; color: white; font-weight: bold; text-align: center;">ID</th>
                             <th style="background-color: #4CAF50; color: white; font-weight: bold; text-align: center;">Nombre del Cliente</th>
                             <th style="background-color: #4CAF50; color: white; font-weight: bold; text-align: center;">Teléfono</th>
+                            <th style="background-color: #4CAF50; color: white; font-weight: bold; text-align: center;">Localidad / Zona</th>
                             <th style="background-color: #4CAF50; color: white; font-weight: bold; text-align: center;">Dirección</th>
                             <th style="background-color: #4CAF50; color: white; font-weight: bold; text-align: center;">Tipo de Cliente</th>
                             <th style="background-color: #4CAF50; color: white; font-weight: bold; text-align: center;">Total Comprado ($)</th>
@@ -505,15 +512,18 @@ export function renderClientes(container, state) {
         state.clientes.forEach(c => {
             const nombre = c.nombre ? c.nombre.replace(/,/g, " ") : "N/A";
             const telefono = c.telefono || "N/A";
+            const localidad = c.localidad || "N/A";
             const direccion = c.ubicacion ? c.ubicacion.replace(/,/g, " ") : "N/A";
             const tipo = c.tipo || "General";
-            const total = c.totalComprado || 0;
+            const stats = obtenerEstadisticasCliente(c.nombre);
+            const total = stats.totalCompras || 0;
 
             tablaHTML += `
                 <tr>
                     <td style="text-align: center;">${c.id}</td>
                     <td>${nombre}</td>
                     <td style="text-align: center;">${telefono}</td>
+                    <td style="text-align: center;">${localidad}</td>
                     <td>${direccion}</td>
                     <td style="text-align: center;">${tipo}</td>
                     <td style="text-align: right;">${total}</td>
@@ -528,14 +538,11 @@ export function renderClientes(container, state) {
             </html>
         `;
 
-        // Crear el archivo .xls
         const blob = new Blob([tablaHTML], { type: 'application/vnd.ms-excel' });
         const url = URL.createObjectURL(blob);
-        
         const link = document.createElement("a");
         link.setAttribute("href", url);
         
-        // Nombre del archivo con la fecha del día
         const fecha = new Date().toISOString().split('T')[0];
         link.setAttribute("download", `Base_Clientes_Lomos_${fecha}.xls`);
         
@@ -544,10 +551,8 @@ export function renderClientes(container, state) {
         document.body.removeChild(link);
     };
 
-    // Evitar duplicados del botón si la vista se recarga por interacciones en el módulo
     const existingBtn = document.getElementById('btn-export-csv-clientes');
     if (existingBtn) existingBtn.remove();
     
-    // Agregar el botón a la vista actual
     container.appendChild(btnExportar);
 }

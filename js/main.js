@@ -3,7 +3,8 @@ import { renderInventario } from './inventario.js';
 import { renderFinanzas } from './finanzas.js';
 import { renderClientes } from './clientes.js';
 import { renderGastos } from './gastos.js';
-import { renderDomicilios } from './domicilios.js'; // <-- Módulo estabilizado
+import { renderDomicilios } from './domicilios.js';
+import { renderConfiguracion } from './configuracion.js';
 
 /**
  * CONFIGURACIÓN DE PERSISTENCIA
@@ -29,13 +30,13 @@ window.verificarAccionAdmin = (accionAutorizada) => {
         align-items: center; z-index: 100000; backdrop-filter: blur(4px);
     `;
     overlay.innerHTML = `
-        <div style="background: #141414; border: 1px solid #e74c3c; padding: 25px; border-radius: 12px; width: 90%; max-width: 350px; text-align: center; color: white; box-shadow: 0 10px 30px rgba(231,76,60,0.3);">
-            <h3 style="margin-top: 0; color: #e74c3c; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px;">🔒 Acceso Restringido</h3>
-            <p style="margin: 15px 0; color: #ccc; font-size: 0.9rem;">Ingrese la clave de administrador para autorizar esta acción:</p>
-            <input type="password" id="admin-pass-input" placeholder="****" style="width: 100%; padding: 12px; background: #0a0a0a; border: 1px solid #333; color: white; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 1.2rem; letter-spacing: 5px; outline: none; box-sizing: border-box;" />
+        <div style="background: var(--card-bg, #141414); border: 1px solid var(--accent, #e74c3c); padding: 25px; border-radius: 12px; width: 90%; max-width: 350px; text-align: center; color: var(--text-main, white); box-shadow: 0 10px 30px rgba(231,76,60,0.3);">
+            <h3 style="margin-top: 0; color: var(--accent, #e74c3c); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px;">🔒 Acceso Restringido</h3>
+            <p style="margin: 15px 0; color: var(--text-muted, #ccc); font-size: 0.9rem;">Ingrese la clave de administrador para autorizar esta acción:</p>
+            <input type="password" id="admin-pass-input" placeholder="****" style="width: 100%; padding: 12px; background: var(--bg-primary, #0a0a0a); border: 1px solid var(--border, #333); color: var(--text-main, white); border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 1.2rem; letter-spacing: 5px; outline: none; box-sizing: border-box;" />
             <div style="display: flex; gap: 10px;">
-                <button id="admin-cancel-btn" style="flex: 1; background: #1a1a1a; color: white; border: 1px solid #333; padding: 11px; border-radius: 8px; font-weight: bold; cursor: pointer;">Cancelar</button>
-                <button id="admin-ok-btn" style="flex: 1; background: #e74c3c; color: white; border: none; padding: 11px; border-radius: 8px; font-weight: bold; cursor: pointer;">Autorizar</button>
+                <button id="admin-cancel-btn" style="flex: 1; background: var(--bg-secondary, #1a1a1a); color: var(--text-main, white); border: 1px solid var(--border, #333); padding: 11px; border-radius: 8px; font-weight: bold; cursor: pointer;">Cancelar</button>
+                <button id="admin-ok-btn" style="flex: 1; background: var(--accent, #e74c3c); color: white; border: none; padding: 11px; border-radius: 8px; font-weight: bold; cursor: pointer;">Autorizar</button>
             </div>
         </div>
     `;
@@ -51,7 +52,7 @@ window.verificarAccionAdmin = (accionAutorizada) => {
             overlay.remove();
             accionAutorizada();
         } else {
-            input.style.borderColor = '#e74c3c';
+            input.style.borderColor = 'var(--accent, #e74c3c)';
             input.value = '';
             input.placeholder = 'Clave incorrecta';
         }
@@ -64,15 +65,14 @@ window.verificarAccionAdmin = (accionAutorizada) => {
 /**
  * ESTADO INICIAL COMPLETO
  * Estructura de datos base para el primer arranque de la aplicación.
- * Contiene los valores por defecto para todos los módulos integrados.
  */
 const defaultState = {
     moduloActivo: 'ventas',
     categoriaSeleccionada: 'TODOS',
     terminoBusqueda: "",
-    tipoPrecioActivo: 'detal', // 'detal' (Vitrina) o 'mayor' (Por Mayor)
+    tipoPrecioActivo: 'detal',
     nroFacturaActual: 1001,
-    ventasRealizadas: [], // Historial de facturación
+    ventasRealizadas: [],
     categorias: [
         "TODOS", "Res", "Cerdo", "Pollo", "Pescado", "Congelados", 
         "Arepas", "Quesos, Lacteos y Refrigerados", "Charcutería", 
@@ -87,14 +87,10 @@ const defaultState = {
     carrito: [],
     tmpCliente: "",
     tmpNotas: "",
-    
-    // --- ESTADO INICIAL DEL MÓDULO DE CLIENTES ---
     clientes: [
         { id: 1, nombre: "Asadero El Vecino", tipo: "juridico", telefono: "3101234567", cedula: "901234567-8", ubicacion: "Calle 80 #15-20" },
         { id: 2, nombre: "Juan Pérez", tipo: "natural", telefono: "3209876543", cedula: "1018234567", ubicacion: "Engativá Centro" }
     ],
-    
-    // --- ESTADO INICIAL DEL MÓDULO DE GASTOS ---
     gastos: [],
     gastosBusqueda: "",
     gastosFiltroCategoria: "TODOS",
@@ -107,19 +103,36 @@ const defaultState = {
         "Mantenimiento de Equipos",
         "Otros Gastos Operacionales"
     ],
-    
-    // --- ESTADO INICIAL DEL MÓDULO DE MERMAS Y RENDIMIENTO ---
     registroMermas: [],
     subproductosAcumulados: {
-        "Piel de Pollo": 0,
-        "Grasa de Cerdo": 0,
-        "Grasa de Res": 0,
-        "Recortes de Carne (Res)": 0,
-        "Recortes de Carne (Cerdo)": 0
+        "Piel de Pollo": 0, "Grasa de Cerdo": 0, "Grasa de Res": 0,
+        "Recortes de Carne (Res)": 0, "Recortes de Carne (Cerdo)": 0
     },
+    domicilios: [],
+    configuracion: {
+        temaActivo: 'tema-lomos',
+        nombreEmpresa: 'Lomos & Lomos',
+        emojis: {
+            ventas: '🛒',
+            inventario: '📦',
+            finanzas: '📊',
+            clientes: '👥',
+            gastos: '💸',
+            domicilios: '🛵',
+            configuracion: '⚙️'
+        }
+    }
+};
 
-    // --- ESTADO INICIAL DOMICILIOS ---
-    domicilios: []
+/**
+ * DICCIONARIO DE TEMAS PARA INICIALIZACIÓN TEMPRANA
+ * Evita el parpadeo de colores antes de que se monte la aplicación JS.
+ */
+const temasPredefinidos = {
+    'tema-lomos': { bgPrimary: '#0a0a0a', bgSecondary: '#141414', cardBg: '#1c1c1c', accent: '#e74c3c', textMain: '#ffffff', textMuted: '#888888', border: '#2a2a2a' },
+    'tema-oceano': { bgPrimary: '#0f172a', bgSecondary: '#1e293b', cardBg: '#334155', accent: '#3b82f6', textMain: '#f8fafc', textMuted: '#94a3b8', border: '#475569' },
+    'tema-bosque': { bgPrimary: '#052e16', bgSecondary: '#14532d', cardBg: '#166534', accent: '#22c55e', textMain: '#f0fdf4', textMuted: '#86efac', border: '#15803d' },
+    'tema-claro': { bgPrimary: '#f8fafc', bgSecondary: '#ffffff', cardBg: '#f1f5f9', accent: '#e74c3c', textMain: '#0f172a', textMuted: '#64748b', border: '#e2e8f0' }
 };
 
 /**
@@ -171,8 +184,30 @@ const loadState = () => {
                 parsed.subproductosAcumulados = { ...defaultState.subproductosAcumulados };
             }
 
-            // Sincronización segura de Domicilios
             if (!parsed.domicilios) parsed.domicilios = [];
+            
+            // Sincronización de Configuración Global y Personalización
+            if (!parsed.configuracion) {
+                parsed.configuracion = { ...defaultState.configuracion };
+            } else {
+                if (!parsed.configuracion.nombreEmpresa) parsed.configuracion.nombreEmpresa = defaultState.configuracion.nombreEmpresa;
+                if (!parsed.configuracion.emojis) parsed.configuracion.emojis = { ...defaultState.configuracion.emojis };
+            }
+
+            // INICIALIZACIÓN TEMPRANA DEL TEMA (Para evitar parpadeos al cargar la web)
+            if (parsed.configuracion && parsed.configuracion.temaActivo) {
+                const tema = temasPredefinidos[parsed.configuracion.temaActivo];
+                if (tema) {
+                    const root = document.documentElement;
+                    root.style.setProperty('--bg-primary', tema.bgPrimary);
+                    root.style.setProperty('--bg-secondary', tema.bgSecondary);
+                    root.style.setProperty('--card-bg', tema.cardBg);
+                    root.style.setProperty('--accent', tema.accent);
+                    root.style.setProperty('--text-main', tema.textMain);
+                    root.style.setProperty('--text-muted', tema.textMuted);
+                    root.style.setProperty('--border', tema.border);
+                }
+            }
 
             return parsed;
         } catch (e) {
@@ -180,6 +215,18 @@ const loadState = () => {
             return defaultState;
         }
     }
+    
+    // Si es primera vez, aplica el tema base
+    const temaBase = temasPredefinidos['tema-lomos'];
+    const root = document.documentElement;
+    root.style.setProperty('--bg-primary', temaBase.bgPrimary);
+    root.style.setProperty('--bg-secondary', temaBase.bgSecondary);
+    root.style.setProperty('--card-bg', temaBase.cardBg);
+    root.style.setProperty('--accent', temaBase.accent);
+    root.style.setProperty('--text-main', temaBase.textMain);
+    root.style.setProperty('--text-muted', temaBase.textMuted);
+    root.style.setProperty('--border', temaBase.border);
+    
     return defaultState;
 };
 
@@ -188,7 +235,7 @@ window.state = loadState();
 
 /**
  * GUARDAR DATOS
- * Serializa y almacena el estado completo.
+ * Serializa y almacena el estado completo en LocalStorage.
  */
 window.saveData = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(window.state));
@@ -201,23 +248,19 @@ window.showModule = (module) => {
     window.state.moduloActivo = module;
     window.saveData();
 
-    // Actualizar dinámicamente el estilo activo del menú
+    // Actualizar dinámicamente el estilo activo del menú lateral
     document.querySelectorAll('.sidebar li').forEach(li => {
         li.classList.remove('active');
-        const text = li.innerText.toLowerCase();
-        
-        if (module === 'ventas' && text.includes('ventas')) li.classList.add('active');
-        if (module === 'inventario' && text.includes('inventario')) li.classList.add('active');
-        if (module === 'finanzas' && text.includes('finanzas')) li.classList.add('active');
-        if (module === 'clientes' && text.includes('clientes')) li.classList.add('active');
-        if (module === 'gastos' && text.includes('gastos')) li.classList.add('active');
-        if (module === 'domicilios' && text.includes('domicilios')) li.classList.add('active');
+        const onclickAction = li.getAttribute('onclick') || '';
+        if (onclickAction.includes(`showModule('${module}')`)) {
+            li.classList.add('active');
+        }
     });
 
     const container = document.getElementById('app-container');
     if (!container) return;
 
-    // Renderizado seguro
+    // Renderizado seguro con manejo de errores
     try {
         switch (module) {
             case 'ventas': renderVentas(container, window.state); break;
@@ -226,12 +269,13 @@ window.showModule = (module) => {
             case 'clientes': renderClientes(container, window.state); break;
             case 'gastos': renderGastos(container, window.state); break;
             case 'domicilios': renderDomicilios(container, window.state); break;
+            case 'configuracion': renderConfiguracion(container, window.state); break;
             default: renderVentas(container, window.state);
         }
     } catch (error) {
         console.error(`Fallo crítico al renderizar el módulo [${module}]:`, error);
         container.innerHTML = `
-            <div style="padding: 40px; text-align: center; color: #e74c3c;">
+            <div style="padding: 40px; text-align: center; color: var(--accent, #e74c3c);">
                 <h2>⚠️ Error en la visualización</h2>
                 <p>Ocurrió un inconveniente al cargar el módulo de <b>${module}</b>.</p>
                 <button onclick="location.reload()" class="btn-primary" style="margin-top: 15px; width: auto; padding: 10px 20px;">
@@ -244,14 +288,43 @@ window.showModule = (module) => {
 
 /**
  * RECARGAR VISTA FISICA
+ * Guarda los datos y fuerza un re-renderizado del módulo activo.
  */
 window.refreshView = () => {
     window.saveData();
     window.showModule(window.state.moduloActivo);
 };
 
-// Evento que inicia la ejecución de la app
+// Evento que inicia la ejecución de la app y la personalización del HTML cuando está listo
 document.addEventListener('DOMContentLoaded', () => {
-    // Intenta arrancar en el módulo activo, si falla va a ventas
+    
+    // 1. Cargar el Nombre de la Empresa en el Logo Superior Izquierdo
+    const logoElement = document.querySelector('.logo');
+    if (logoElement && window.state.configuracion && window.state.configuracion.nombreEmpresa) {
+        logoElement.innerText = window.state.configuracion.nombreEmpresa;
+    }
+
+    // 2. Cargar y procesar los Emojis personalizados en los items del Menú (Sidebar)
+    if (window.state.configuracion && window.state.configuracion.emojis) {
+        const menuItems = document.querySelectorAll('.sidebar li');
+        menuItems.forEach(li => {
+            const onclickAttr = li.getAttribute('onclick');
+            if(onclickAttr) {
+                // Busca qué módulo activa este <li> (ej: 'ventas', 'inventario')
+                const match = onclickAttr.match(/'([^']+)'/);
+                if (match && match[1]) {
+                    const moduleName = match[1];
+                    const emojiCustom = window.state.configuracion.emojis[moduleName];
+                    if (emojiCustom) {
+                         // Eliminar emojis previos u otros símbolos antes del texto real
+                         const textoLimpio = li.innerText.replace(/^[^\w\s]+/, '').trim();
+                         li.innerText = `${emojiCustom} ${textoLimpio}`;
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. Intenta arrancar en el módulo activo (o va a 'ventas' por defecto)
     window.showModule(window.state.moduloActivo || 'ventas');
 });
